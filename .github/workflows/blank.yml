@@ -23,7 +23,7 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
           SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
         run: |
-          python -c "
+          python3 <<EOF
           import snowflake.connector
           from cryptography.hazmat.primitives import serialization
           from cryptography.hazmat.backends import default_backend
@@ -55,5 +55,13 @@ jobs:
               ssl_context=ssl.create_default_context()  # Create SSL context
           )
 
-          # Execute your SQL script
-          conn.cursor().execut
+          # Execute your SQL script (example: querying Snowflake version)
+          cursor = conn.cursor()
+          cursor.execute('SELECT CURRENT_VERSION()')
+          result = cursor.fetchone()
+          print(f"Snowflake version: {result[0]}")  # Print the result
+
+          # Close the cursor and connection
+          cursor.close()
+          conn.close()
+          EOF
