@@ -21,47 +21,40 @@ jobs:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}      
         run: |
-          python3 <<EOF
+          python -c "
           import snowflake.connector
+          import ssl
           from cryptography.hazmat.primitives import serialization
           from cryptography.hazmat.backends import default_backend
-          import ssl
-
+                
           # Load the private key from GitHub secrets (PEM format)
           private_key = '''${{ secrets.SNOWFLAKE_PRIVATE_KEY }}'''
 
           # Convert the private key into bytes and parse it into an RSAPrivateKey object
           private_key_bytes = private_key.encode('utf-8')  # Convert string to bytes
-          passphrase = '${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}'
-          passphrase_bytes = passphrase.encode('utf-8')  # Passphrase must be bytes
-
           private_key_obj = serialization.load_pem_private_key(
               private_key_bytes,
-              password=passphrase_bytes,  # Passphrase as bytes
+              password=b'${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}',  # Passphrase if needed
               backend=default_backend()
           )
 
           # Confirm the type of the private key object (should be RSAPrivateKey)
-          print(f"Private key object type: {type(private_key_obj)}")  # Should print: <class 'cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey'>
+          print(type(private_key_obj))  # Should print: <class 'cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey'>
 
           # Establish Snowflake connection
           conn = snowflake.connector.connect(
-              user='${{ secrets.SNOWFLAKE_USER }}',
-              account='${{ secrets.SNOWFLAKE_ACCOUNT }}',
+              user='SVCSNOWFLAKEGITHUB',
+              account='necdcsf.east-us-2.azure.snowflakecomputing.com',
               private_key=private_key_obj,  # Pass the RSAPrivateKey object directly
-              private_key_passphrase=passphrase_bytes,  # Optional: passphrase as bytes
-              ssl_context=ssl.create_default_context()  # Create SSL context
+              private_key_passphrase='${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}',  # Optional
+              ssl_context=ssl.create_default_context() 
           )
-
-          # Execute your SQL script (example: querying Snowflake version)
-          cursor = conn.cursor()
-          cursor.execute('SELECT CURRENT_VERSION()')
-          result = cursor.fetchone()
-          print(f"Snowflake version: {result[0]}")  # Print the result
-
-          # Close the cursor and connection
-          cursor.close()
-          conn.close()
-          EOF
+          # Retrieve the SSL certificate details
+          cert = conn._conn.sock.getpeercert()
+          print(cert)
+                  
+          # Execute your SQL script
+          conn.cursor().execute('RUN YOUR SQL SCRIPT HERE')
+          "
