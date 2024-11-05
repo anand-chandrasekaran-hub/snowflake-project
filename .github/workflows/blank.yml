@@ -1,0 +1,45 @@
+name: Deploy to Snowflake
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: pip install snowflake-connector-python cryptography
+
+      - name: Run Snowflake script
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+        run: |
+          python -c "
+          import snowflake.connector
+          from cryptography.hazmat.primitives import serialization
+          from cryptography.hazmat.backends import default_backend
+
+          # Load the private key from GitHub secrets (PEM format)
+          private_key = '''${{ secrets.SNOWFLAKE_PRIVATE_KEY }}'''
+
+          # Convert the private key into bytes and parse it into an RSAPrivateKey object
+          private_key_bytes = private_key.encode('utf-8')  # Convert string to bytes
+          private_key_obj = serialization.load_pem_private_key(
+              private_key_bytes,
+              password=None,  # Passphrase if needed
+              backend=default_backend()
+          )
+
+          # Confirm the type of the private key object (should be RSAPrivateKey)
+          print(type(private_key_obj))  # Should print: <class 'cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey'>
+
+          "
