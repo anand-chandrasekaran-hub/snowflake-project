@@ -23,20 +23,25 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
           SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}      
         run: |
-          python -c "
-          import snowflake.connector
+          python3 -c "
+import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import ssl
 import time
+import os
 
 def connect_to_snowflake():
     try:
-        # Load private key from GitHub secrets (PEM format)
-        private_key = '''${{ secrets.SNOWFLAKE_PRIVATE_KEY }}'''
+        # Retrieve the private key from the environment variable
+        private_key = os.getenv('SNOWFLAKE_PRIVATE_KEY')
+        passphrase = os.getenv('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE')
 
+        if not private_key or not passphrase:
+            raise ValueError('Private key or passphrase is missing.')
+
+        # Convert the private key into bytes and parse it into an RSAPrivateKey object
         private_key_bytes = private_key.encode('utf-8')  # Convert string to bytes
-        passphrase = '${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}'
         passphrase_bytes = passphrase.encode('utf-8')  # Passphrase must be bytes
 
         private_key_obj = serialization.load_pem_private_key(
@@ -45,31 +50,31 @@ def connect_to_snowflake():
             backend=default_backend()
         )
 
-        print(f"Private key object type: {type(private_key_obj)}")
+        print(f'Private key object type: {type(private_key_obj)}')
 
         # Establish connection with retry logic
         retries = 11
         for attempt in range(retries):
             try:
                 conn = snowflake.connector.connect(
-                    user='${{ secrets.SNOWFLAKE_USER }}',
-                    account='${{ secrets.SNOWFLAKE_ACCOUNT }}',
+                    user=os.getenv('SNOWFLAKE_USER'),
+                    account=os.getenv('SNOWFLAKE_ACCOUNT'),
                     private_key=private_key_obj,  # Pass the RSAPrivateKey object directly
                     private_key_passphrase=passphrase_bytes,  # Optional: passphrase as bytes
                     ssl_context=ssl.create_default_context()  # Create SSL context
                 )
-                print("Connected to Snowflake successfully.")
+                print('Connected to Snowflake successfully.')
                 return conn  # Return the connection once successful
             except snowflake.connector.errors.OperationalError as e:
-                print(f"Attempt {attempt + 1} failed: {e}")
+                print(f'Attempt {attempt + 1} failed: {e}')
                 if attempt < retries - 1:
                     time.sleep(5)  # Wait 5 seconds before retrying
                 else:
-                    print("All connection attempts failed.")
+                    print('All connection attempts failed.')
                     raise e
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f'Error: {e}')
         raise
 
 # Connect to Snowflake
@@ -80,7 +85,7 @@ try:
     cursor = conn.cursor()
     cursor.execute('SELECT CURRENT_VERSION()')
     result = cursor.fetchone()
-    print(f"Snowflake version: {result[0]}")  # Print the result
+    print(f'Snowflake version: {result[0]}')  # Print the result
 finally:
     cursor.close()
     conn.close()
