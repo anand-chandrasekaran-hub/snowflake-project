@@ -1,48 +1,49 @@
 name: Snowflake Connection
 
-	on:
-	  push:
-	    branches:
-	      - main
-	
-	jobs:
-	  deploy:
-	    runs-on: ubuntu-latest
-	
-	    steps:
-	    - name: Checkout code
-	      uses: actions/checkout@v2
-	
-	    - name: Set up Python
-	      uses: actions/setup-python@v2
-	      with:
-	        python-version: '3.x'
-	
-	    - name: Install dependencies
-	      run: pip install snowflake-connector-python cryptography
-	
-	    - name: Run Snowflake script
-	      env:
-	        SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-	        SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-	        SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-	        SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
-	      run: |
-	        python -c "
-	        import snowflake.connector
-	        from cryptography.hazmat.primitives import serialization
-	        from cryptography.hazmat.backends import default_backend
-	
-	        private_key = serialization.load_pem_private_key(
-	            bytes('${{ secrets.SNOWFLAKE_PRIVATE_KEY }}', 'utf-8'),
-	            password=bytes('${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}', 'utf-8'),
-	            backend=default_backend()
-	        )
-	
-	        conn = snowflake.connector.connect(
-	            user='${{ secrets.SNOWFLAKE_USER }}',
-	            account='${{ secrets.SNOWFLAKE_ACCOUNT }}',
-	            private_key=private_key
-	        )
-	        conn.cursor().execute('RUN YOUR SQL SCRIPT HERE')
-	        "
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install snowflake-connector-python cryptography
+
+      - name: Run Snowflake script
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+        run: |
+          python -c "
+import snowflake.connector
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+
+private_key = serialization.load_pem_private_key(
+    bytes('${{ secrets.SNOWFLAKE_PRIVATE_KEY }}', 'utf-8'),
+    password=bytes('${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}', 'utf-8'),
+    backend=default_backend()
+)
+
+conn = snowflake.connector.connect(
+    user='${{ secrets.SNOWFLAKE_USER }}',
+    account='${{ secrets.SNOWFLAKE_ACCOUNT }}',
+    private_key=private_key
+)
+
+conn.cursor().execute('RUN YOUR SQL SCRIPT HERE')
+"
