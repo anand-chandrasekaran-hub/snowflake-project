@@ -23,7 +23,7 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
           SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
         run: |
-          python3 -c "
+          python3 -c 
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
