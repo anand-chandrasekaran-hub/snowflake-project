@@ -2,6 +2,7 @@
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+import os
 
 # Load the private key from GitHub Secrets (it will be passed via environment variables in GitHub Actions)
 private_key = serialization.load_pem_private_key(
