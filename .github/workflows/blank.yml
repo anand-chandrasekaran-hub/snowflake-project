@@ -1,4 +1,4 @@
-name: Connect to Snowflake
+name: Snowflake Connection
 
 on:
   push:
@@ -6,57 +6,63 @@ on:
       - main
 
 jobs:
-  connect:
+  snowflake_connection:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
       - name: Install dependencies
         run: |
-          pip install snowflake-connector-python cryptography
+          pip install snowflake-connector-python
+          pip install pyyaml
 
-      - name: Connect to Snowflake
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+      - name: Retrieve Snowflake private key from GitHub secrets
         run: |
-          python -c "
-import os
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > private-key.p8
+
+      - name: Run Python script to connect to Snowflake
+        run: |
+          python <<EOF
+import yaml
 import snowflake.connector
-import ssl
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
 
-# Fetch the private key and passphrase from environment variables
-private_key_str = os.getenv('SNOWFLAKE_PRIVATE_KEY')  # Private key in PEM format
-private_key_passphrase = os.getenv('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE')
+# Load the YAML configuration
+with open('snowflake_connection.yaml', 'r') as file:
+    config = yaml.safe_load(file)
 
-# Load the private key from the PEM string
-private_key_obj = serialization.load_pem_private_key(
-    private_key_str.encode(),  # Convert string to bytes
-    password=private_key_passphrase.encode() if private_key_passphrase else None,
-    backend=default_backend()
-)
+# Extract Snowflake connection details
+connection_params = config['snowflake_connection']
 
-# Confirm the type of the private key object (should be RSAPrivateKey)
-print(type(private_key_obj))  # Should print: <class 'cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey'>
+# Read the private key file from the GitHub secret
+private_key_path = 'private-key.p8'
+private_key = open(private_key_path, 'r').read()
 
-# Establish Snowflake connection
+# Establish the Snowflake connection
 conn = snowflake.connector.connect(
-    user=os.getenv('SNOWFLAKE_USER'),
-    account=os.getenv('SNOWFLAKE_ACCOUNT'),
-    private_key=private_key_obj,  # Pass the RSAPrivateKey object directly
-    ssl_context=ssl.create_default_context()  # Default SSL context
+    user=connection_params['svcsnowflakegithub'],
+    account=connection_params['necdcsf.east-us-2.azure.snowflakecomputing.com'],
+    private_key='${{ secrets.SNOWFLAKE_PRIVATE_KEY }}',
+    role=connection_params['NECDATAENGINEER'],
+    warehouse=connection_params['COMPUTE_WH'],
+    database=connection_params['NECDEV'],
+    schema=connection_params['MATERIALS_MANAGEMENT'],
+    authenticator=connection_params['snowflake'],
 )
 
-# Retrieve the SSL certificate details
-cert = conn._conn.sock.getpeercert()
-print(cert)
+# Example query execution
+cursor = conn.cursor()
+cursor.execute("SELECT CURRENT_DATE")
+result = cursor.fetchone()
+print(result)
 
-# Execute your SQL script (modify the SQL query as needed)
-conn.cursor().execute('YOUR SQL SCRIPT HERE')
-          "
+# Clean up
+cursor.close()
+conn.close()
+EOF
