@@ -1,4 +1,4 @@
-name: Deploy to Snowflake
+name: Connect to Snowflake
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  connect:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,9 +14,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: pip install snowflake-connector-python
+        run: |
+          pip install snowflake-connector-python cryptography
 
-      - name: Run Snowflake script
+      - name: Connect to Snowflake
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -24,11 +25,38 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
         run: |
           python -c "
-          import snowflake.connector
-          conn = snowflake.connector.connect(
-              user='${{ secrets.SNOWFLAKE_USER }}',
-              password='${{ secrets.SNOWFLAKE_PRIVATE_KEY }}',
-              account='${{ secrets.SNOWFLAKE_ACCOUNT }}'
-          )
-          conn.cursor().execute('RUN YOUR SQL SCRIPT HERE')
+import os
+import snowflake.connector
+import ssl
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+
+# Fetch the private key and passphrase from environment variables
+private_key_str = os.getenv('SNOWFLAKE_PRIVATE_KEY')  # Private key in PEM format
+private_key_passphrase = os.getenv('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE')
+
+# Load the private key from the PEM string
+private_key_obj = serialization.load_pem_private_key(
+    private_key_str.encode(),  # Convert string to bytes
+    password=private_key_passphrase.encode() if private_key_passphrase else None,
+    backend=default_backend()
+)
+
+# Confirm the type of the private key object (should be RSAPrivateKey)
+print(type(private_key_obj))  # Should print: <class 'cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey'>
+
+# Establish Snowflake connection
+conn = snowflake.connector.connect(
+    user=os.getenv('SNOWFLAKE_USER'),
+    account=os.getenv('SNOWFLAKE_ACCOUNT'),
+    private_key=private_key_obj,  # Pass the RSAPrivateKey object directly
+    ssl_context=ssl.create_default_context()  # Default SSL context
+)
+
+# Retrieve the SSL certificate details
+cert = conn._conn.sock.getpeercert()
+print(cert)
+
+# Execute your SQL script (modify the SQL query as needed)
+conn.cursor().execute('YOUR SQL SCRIPT HERE')
           "
