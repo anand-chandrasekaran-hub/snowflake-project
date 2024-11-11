@@ -46,7 +46,7 @@ jobs:
           # Establish Snowflake connection
           conn = snowflake.connector.connect(
               user='SVCSNOWFLAKEGITHUB',
-              account='necdcsf.east-us-2.azure.snowflakecomputing.com',
+              account='necdcsf.east-us-2.azure',
               private_key=private_key_obj,  # Pass the RSAPrivateKey object directly
               private_key_passphrase='${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}',  # Optional
               ssl_context=ssl.create_default_context() 
