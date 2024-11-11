@@ -46,4 +46,26 @@ conn = snowflake.connector.connect(
     account='${{ secrets.SNOWFLAKE_ACCOUNT }}',
     private_key=private_key
 )
-        "
+
+# SQL query to create or replace the table
+sql_query = '''
+CREATE OR REPLACE TABLE NECDEV.DEV_STAGING.order_details (
+    order_detail_id INT AUTOINCREMENT,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    PRIMARY KEY (order_detail_id),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+'''
+
+# Execute the query
+try:
+    cursor = conn.cursor()
+    cursor.execute(sql_query)
+    print('Table created or replaced successfully.')
+finally:
+    cursor.close()
+    conn.close()
+"
