@@ -3,7 +3,16 @@ import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import os
+import logging
 
+for logger_name in ['snowflake','botocore']:
+	logger = logging.getLogger(logger_name)
+	logger.setLevel(logging.DEBUG)
+	ch = logging.FileHandler('python_connector.log')
+	ch.setLevel(logging.DEBUG)
+	ch.setFormatter(logging.Formatter('%(asctime)s - %(threadName)s %(filename)s:%(lineno)d - %(funcName)s() - %(levelname)s - %(message)s'))
+	logger.addHandler(ch)
+    
 # Load the private key from GitHub Secrets (it will be passed via environment variables in GitHub Actions)
 private_key = serialization.load_pem_private_key(
     bytes(os.getenv('SNOWFLAKE_PRIVATE_KEY'), 'utf-8'),
