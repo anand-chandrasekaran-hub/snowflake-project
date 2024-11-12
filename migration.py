@@ -8,7 +8,7 @@ import logging
 for logger_name in ['snowflake','botocore']:
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
-	ch = logging.FileHandler(r'C:\New folder\python_connector.log')
+	ch = logging.FileHandler(r'C:\Users\anacha\AppData\Local\Programs\Python\Python313>python\python_connector.log')
 	ch.setLevel(logging.DEBUG)
 	ch.setFormatter(logging.Formatter('%(asctime)s - %(threadName)s %(filename)s:%(lineno)d - %(funcName)s() - %(levelname)s - %(message)s'))
 	logger.addHandler(ch)
