@@ -30,7 +30,7 @@ conn = snowflake.connector.connect(
 )
 
 cursor = conn.cursor()
-try
+try:
     # Set the context for the database and schema
     cursor.execute("USE DATABASE NECDEV_BW")
     cursor.execute("USE SCHEMA BW_ADSO")
