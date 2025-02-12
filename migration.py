@@ -29,34 +29,36 @@ conn = snowflake.connector.connect(
     private_key=private_key
 )
 
+# Create a cursor to execute SQL queries
 cursor = conn.cursor()
+
 try:
     # Set the context for the database and schema
     cursor.execute("USE DATABASE NECDEV_BW")
     cursor.execute("USE SCHEMA BW_ADSO")
-	
-# Define the SQL query to create or replace the table
-sql_query = """
-USE DATABASE NECDEV_BW;
-USE SCHEMA BW_ADSO;
-CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
-    order_detail_id INT AUTOINCREMENT,
-    order_id INT,
-    product_id INT,
-    quantity INT,
-    PRIMARY KEY (order_detail_id),
-    FOREIGN KEY (order_id) REFERENCES orders(order_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
-);
-"""
 
-# Execute the query
-   # cursor = conn.cursor()
+    # Define the SQL query to create or replace the table
+    sql_query = """
+    CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
+        order_detail_id INT AUTOINCREMENT,
+        order_id INT,
+        product_id INT,
+        quantity INT,
+        PRIMARY KEY (order_detail_id),
+        FOREIGN KEY (order_id) REFERENCES orders(order_id),
+        FOREIGN KEY (product_id) REFERENCES products(product_id)
+    );
+    """
+    
+    # Execute the query to create the table
     cursor.execute(sql_query)
-    print('Table created or replaced successfully.')
+
+    print("Table created or replaced successfully.")
+
 except snowflake.connector.errors.ProgrammingError as e:
     print(f"Error executing SQL: {e}")
 
 finally:
+    # Close the cursor and connection
     cursor.close()
     conn.close()
