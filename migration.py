@@ -21,6 +21,7 @@ private_key = serialization.load_pem_private_key(
     backend=default_backend()
 )
 
+
 # Establish the Snowflake connection
 conn = snowflake.connector.connect(
     user=os.getenv('SNOWFLAKE_USER'),
@@ -28,6 +29,12 @@ conn = snowflake.connector.connect(
     private_key=private_key
 )
 
+cursor = conn.cursor()
+
+    # Set the context for the database and schema
+    cursor.execute("USE DATABASE NECDEV_BW")
+    cursor.execute("USE SCHEMA BW_ADSO")
+	
 # Define the SQL query to create or replace the table
 sql_query = """
 USE DATABASE NECDEV_BW;
