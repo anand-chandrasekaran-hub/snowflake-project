@@ -32,10 +32,10 @@ conn = snowflake.connector.connect(
 # Create a cursor to execute SQL queries
 cursor = conn.cursor()
 
-try:
+
     # Set the context for the database and schema
-    cursor.execute("USE DATABASE NECDEV_BW")
-    cursor.execute("USE SCHEMA BW_ADSO")
+ #   cursor.execute("USE DATABASE NECDEV_BW")
+  #  cursor.execute("USE SCHEMA BW_ADSO")
 
     # Define the SQL query to create or replace the table
     sql_query = """
@@ -49,7 +49,7 @@ try:
         FOREIGN KEY (product_id) REFERENCES products(product_id)
     );
     """
-    
+    try:
     # Execute the query to create the table
     cursor.execute(sql_query)
 
