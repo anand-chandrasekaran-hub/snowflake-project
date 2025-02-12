@@ -30,7 +30,7 @@ conn = snowflake.connector.connect(
 
 # Define the SQL query to create or replace the table
 sql_query = """
-CREATE OR REPLACE TABLE NECDEV.DEV_STAGING.order_details (
+CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
     order_detail_id INT AUTOINCREMENT,
     order_id INT,
     product_id INT,
