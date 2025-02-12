@@ -30,7 +30,7 @@ conn = snowflake.connector.connect(
 )
 
 cursor = conn.cursor()
-
+try
     # Set the context for the database and schema
     cursor.execute("USE DATABASE NECDEV_BW")
     cursor.execute("USE SCHEMA BW_ADSO")
@@ -51,8 +51,7 @@ CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
 """
 
 # Execute the query
-try:
-    cursor = conn.cursor()
+   # cursor = conn.cursor()
     cursor.execute(sql_query)
     print('Table created or replaced successfully.')
 finally:
