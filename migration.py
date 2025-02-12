@@ -30,6 +30,8 @@ conn = snowflake.connector.connect(
 
 # Define the SQL query to create or replace the table
 sql_query = """
+USE DATABASE NECDEV_BW;
+USE SCHEMA BW_ADSO;
 CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
     order_detail_id INT AUTOINCREMENT,
     order_id INT,
