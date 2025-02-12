@@ -54,6 +54,9 @@ CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.order_details_test (
    # cursor = conn.cursor()
     cursor.execute(sql_query)
     print('Table created or replaced successfully.')
+except snowflake.connector.errors.ProgrammingError as e:
+    print(f"Error executing SQL: {e}")
+
 finally:
     cursor.close()
     conn.close()
