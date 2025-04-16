@@ -36,8 +36,8 @@ cursor = conn.cursor()
 
 try:
     # Optional: Set context (uncomment if needed)
-    # cursor.execute("USE DATABASE NECDEV_BW")
-    # cursor.execute("USE SCHEMA BW_ADSO")
+    cursor.execute("USE DATABASE NECDEV_BW")
+    cursor.execute("USE SCHEMA BW_ADSO")
 
     # Define the SQL query
     sql_query = """
