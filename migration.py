@@ -45,7 +45,7 @@ try:
         order_detail_id INT AUTOINCREMENT,
         order_id INT,
         product_id INT,
-        quantity INT,
+        quantity INT
     );
     """
 
