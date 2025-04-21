@@ -1,5 +1,6 @@
 # migration.py
 
+import yaml
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
@@ -16,6 +17,14 @@ for logger_name in ['snowflake', 'botocore']:
         '%(asctime)s - %(threadName)s %(filename)s:%(lineno)d - %(funcName)s() - %(levelname)s - %(message)s'))
     logger.addHandler(ch)
     logger.info('Logging initialized.')
+    
+# Load table metadata from YAML
+with open("config/table_metadata.yaml", "r") as f:
+    metadata = yaml.safe_load(f)
+
+# Set up Jinja2 environment
+env = Environment(loader=FileSystemLoader("templates"))
+template = env.get_template("dynamic_table.sql.j2")
 
 # Load the private key from environment variables (GitHub Secrets)
 private_key = serialization.load_pem_private_key(
