@@ -3,7 +3,7 @@ name: Snowflake Migrationv Dev
 on:
   push:
     branches:
-      - dev_env
+      - feature/add-fact-and-dimension-tables
 
 jobs:
   deploy:
