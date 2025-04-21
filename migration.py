@@ -38,7 +38,7 @@ cursor = conn.cursor()
   #  cursor.execute("USE DATABASE NECDEV_BW")
     #cursor.execute("USE SCHEMA BW_ADSO")
 
-   for table in metadata["tables"]:
+for table in metadata["tables"]:
     if table["name"] == "DIM_ADDRESSINFO":
         print(f"Creating table {table['name']}...")
         
