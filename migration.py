@@ -34,29 +34,18 @@ conn = snowflake.connector.connect(
 # Create a cursor to execute SQL queries
 cursor = conn.cursor()
 
-try:
     # Optional: Set context (uncomment if needed)
-    cursor.execute("USE DATABASE NECDEV_BW")
-    cursor.execute("USE SCHEMA BW_ADSO")
+  #  cursor.execute("USE DATABASE NECDEV_BW")
+    #cursor.execute("USE SCHEMA BW_ADSO")
 
-    # Define the SQL query
-    sql_query = """
-    CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.test (
-        order_detail_id INT AUTOINCREMENT,
-        order_id INT,
-        product_id INT,
-        quantity INT
-    );
-    """
+   for table in metadata["tables"]:
+    if table["name"] == "DIM_ADDRESSINFO":
+        print(f"Creating table {table['name']}...")
+        
+        # Generate the DDL using Jinja2 template
+        ddl = template.render(table=table)
+        cursor.execute(ddl)
+        print(f"Table {table['name']} created successfully.")
 
-    # Execute the query
-    cursor.execute(sql_query)
-    print("Table created or replaced successfully.")
-
-except snowflake.connector.errors.ProgrammingError as e:
-    print(f"Error executing SQL: {e}")
-
-finally:
-    # Clean up
-    cursor.close()
-    conn.close()
+cursor.close()
+conn.close()

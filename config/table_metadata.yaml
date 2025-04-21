@@ -1,0 +1,21 @@
+tables:
+  - name: DIM_ADDRESSINFO
+    type: DIMENSION
+    columns:
+      - name: ADDRESSINFO_KEY
+        type: STRING
+      - name: CITY
+        type: STRING
+      - name: STREET
+        type: STRING
+      - name: COUNTRY_KEY
+        type: STRING
+      - name: ADDRESS_NUMBER
+        type: STRING
+      - name: VALID_FROM_DATE
+        type: DATE
+      - name: INTERNATIONAL_ADDRESS_VERSION_ID
+        type: STRING
+    source_table: NECPROD.SALES_AND_DISTRIBUTION.ADRC
+    refresh_mode: INCREMENTAL
+    target_lag: 1
