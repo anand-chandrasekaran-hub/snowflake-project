@@ -1,9 +1,9 @@
-name: Snowflake Migration
+name: Snowflake Migrationv Dev
 
 on:
   push:
     branches:
-      - main
+      - dev_env
 
 jobs:
   deploy:
