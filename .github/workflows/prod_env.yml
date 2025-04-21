@@ -3,7 +3,7 @@ name: Snowflake Migrationv Prod
 on:
   push:
     branches:
-      - prod_env
+      - main
 
 jobs:
   deploy:
