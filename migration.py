@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import os
 import logging
+from jinja2 import Environment, FileSystemLoader
 
 # Set up logging for Snowflake and Botocore
 for logger_name in ['snowflake', 'botocore']:
