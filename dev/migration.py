@@ -1,4 +1,4 @@
-# migration.py
+1# migration.py
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
@@ -19,7 +19,7 @@ conn = snowflake.connector.connect(
 
 # Define the SQL query to create or replace the table
 sql_query = """
-CREATE OR REPLACE TABLE NECDEV.DEV_STAGING.Test (
+CREATE OR REPLACE TABLE NECDEV.DEV_STAGING1.Test (
     order_detail_id INT AUTOINCREMENT,
     order_id INT,
     product_id INT,
