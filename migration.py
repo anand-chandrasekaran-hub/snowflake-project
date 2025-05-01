@@ -1,5 +1,6 @@
 # migration.py
 
+import sys
 import yaml
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
