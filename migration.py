@@ -1,13 +1,11 @@
+
 # migration.py
 
-import sys
-import yaml
 import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import os
 import logging
-from jinja2 import Environment, FileSystemLoader
 
 # Set up logging for Snowflake and Botocore
 for logger_name in ['snowflake', 'botocore']:
@@ -19,14 +17,6 @@ for logger_name in ['snowflake', 'botocore']:
         '%(asctime)s - %(threadName)s %(filename)s:%(lineno)d - %(funcName)s() - %(levelname)s - %(message)s'))
     logger.addHandler(ch)
     logger.info('Logging initialized.')
-    
-# Load table metadata from YAML
-with open("config/table_metadata.yaml", "r") as f:
-    metadata = yaml.safe_load(f)
-
-# Set up Jinja2 environment
-env = Environment(loader=FileSystemLoader("templates"))
-template = env.get_template("dynamic_table.sql.j2")
 
 # Load the private key from environment variables (GitHub Secrets)
 private_key = serialization.load_pem_private_key(
@@ -45,18 +35,29 @@ conn = snowflake.connector.connect(
 # Create a cursor to execute SQL queries
 cursor = conn.cursor()
 
+try:
     # Optional: Set context (uncomment if needed)
-  #  cursor.execute("USE DATABASE NECDEV_BW")
-    #cursor.execute("USE SCHEMA BW_ADSO")
+    cursor.execute("USE DATABASE NECDEV_BW")
+    cursor.execute("USE SCHEMA BW_ADSO")
 
-for table in metadata["tables"]:
-    if table["name"] == "DIM_ADDRESSINFO":
-        print(f"Creating table {table['name']}...")
-        
-        # Generate the DDL using Jinja2 template
-        ddl = template.render(table=table)
-        cursor.execute(ddl)
-        print(f"Table {table['name']} created successfully.")
+    # Define the SQL query
+    sql_query = """
+    CREATE OR REPLACE TABLE NECDEV_BW.BW_ADSO.test (
+        order_detail_id INT AUTOINCREMENT,
+        order_id INT,
+        product_id INT,
+        quantity INT
+    );
+    """
 
-cursor.close()
-conn.close()
+    # Execute the query
+    cursor.execute(sql_query)
+    print("Table created or replaced successfully.")
+
+except snowflake.connector.errors.ProgrammingError as e:
+    print(f"Error executing SQL: {e}")
+
+finally:
+    # Clean up
+    cursor.close()
+    conn.close()
