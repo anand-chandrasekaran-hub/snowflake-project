@@ -19,7 +19,7 @@ jobs:
         python-version: '3.x'
 
     - name: Install dependencies
-      run: pip install pyyaml snowflake-connector-python cryptography
+      run: pip install pyyaml snowflake-connector-python cryptography jinja2
 
     - name: Run Snowflake migration script
       env:
