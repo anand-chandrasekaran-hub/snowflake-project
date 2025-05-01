@@ -1,5 +1,5 @@
 -- Create a table for order details
-CREATE OR REPLACE TABLE NECDEV.DEV_STAGING.order_details (
+CREATE OR REPLACE TABLE NECDEV.DEV_STAGING_1.order_details (
     order_detail_id INT AUTOINCREMENT,
     order_id INT,
     product_id INT,
